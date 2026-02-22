@@ -20,6 +20,12 @@ const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
 const STORAGE_KEY = 'pg_suppliers_data';
 
+const getTrackUrl = (orderId: string) => {
+  if (typeof window === 'undefined') return `/track/${orderId}`;
+  const basePath = (import.meta.env.BASE_URL || '/').replace(/\/$/, '');
+  return `${window.location.origin}${basePath}/track/${orderId}`;
+};
+
 // Seed 15 Drivers
 const INITIAL_DRIVERS: User[] = Array.from({ length: 15 }, (_, i) => ({
   id: `DRV-${100 + i}`,
@@ -112,7 +118,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     // Simulate Notification
     if (status === 'out_for_delivery') {
-      console.log(`[SIMULATED NOTIFICATION] To customer of ${orderId}: Your driver is on the way! Track here: http://localhost:5173/track/${orderId}`);
+      console.log(`[SIMULATED NOTIFICATION] To customer of ${orderId}: Your driver is on the way! Track here: ${getTrackUrl(orderId)}`);
     } else if (status === 'delivered') {
       console.log(`[SIMULATED NOTIFICATION] To customer of ${orderId}: Order delivered!`);
     }

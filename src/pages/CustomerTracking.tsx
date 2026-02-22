@@ -201,7 +201,7 @@ const CustomerTracking: React.FC = () => {
               <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Items</p>
               <p className="text-sm text-gray-900 italic">{order.items}</p>
             </div>
-            <p className="text-[10px] font-mono text-gray-300">EST 1998 • Pabitra Ganesh Suppliers</p>
+            <p className="text-[10px] font-mono text-gray-300">EST 1998 - Pabitra Ganesh Suppliers</p>
           </div>
         </div>
       </div>

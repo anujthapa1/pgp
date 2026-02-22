@@ -9,19 +9,20 @@ import { useStore } from './context/StoreContext';
 function ProtectedRoute({ children, role }: { children: React.ReactNode, role?: 'dispatcher' | 'driver' }) {
   const { currentUser } = useStore();
 
-  if (!currentUser) return <Navigate to="/login" />;
-  if (role && currentUser.role !== role) return <Navigate to="/" />;
+  if (!currentUser) return <Navigate to="/login" replace />;
+  if (role && currentUser.role !== role) return <Navigate to="/" replace />;
 
   return <>{children}</>;
 }
 
 function App() {
   const { currentUser } = useStore();
+  const routerBase = import.meta.env.BASE_URL.replace(/\/$/, '') || '/';
 
   return (
-    <Router>
+    <Router basename={routerBase}>
       <Routes>
-        <Route path="/login" element={!currentUser ? <Login /> : <Navigate to="/" />} />
+        <Route path="/login" element={!currentUser ? <Login /> : <Navigate to="/" replace />} />
         <Route path="/track/:orderId" element={<CustomerTracking />} />
 
         <Route path="/" element={
@@ -47,6 +48,8 @@ function App() {
             </Layout>
           </ProtectedRoute>
         } />
+
+        <Route path="*" element={<Navigate to={currentUser ? '/' : '/login'} replace />} />
       </Routes>
     </Router>
   );
