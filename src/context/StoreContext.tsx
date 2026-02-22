@@ -43,6 +43,7 @@ const StoreContext = createContext<StoreContextType | undefined>(undefined);
 const STORAGE_KEY = 'pg_suppliers_data';
 const AUTO_DISPATCH_ENABLED = true;
 const NOTIFICATION_WEBHOOK_URL = import.meta.env.VITE_NOTIFICATION_WEBHOOK_URL as string | undefined;
+const SLACK_WEBHOOK_PREFIX = 'https://hooks.slack.com/services/';
 
 const generateId = (prefix: string) => `${prefix}-${Math.random().toString(36).slice(2, 11).toUpperCase()}`;
 
@@ -95,6 +96,9 @@ const buildNotificationChannels = (order: Order): NotificationChannel[] => {
   return channels;
 };
 
+const isNotificationStatus = (value: unknown): value is NotificationStatus =>
+  value === 'sent' || value === 'queued' || value === 'failed' || value === 'skipped';
+
 const sendIntegrationNotification = async (payload: {
   event: NotificationEvent;
   subject: string;
@@ -112,17 +116,77 @@ const sendIntegrationNotification = async (payload: {
   }
 
   try {
+    const isSlackWebhook = NOTIFICATION_WEBHOOK_URL.startsWith(SLACK_WEBHOOK_PREFIX);
+    const body = isSlackWebhook
+      ? {
+          text: `${payload.subject}\n${payload.message}`,
+          blocks: [
+            {
+              type: 'header',
+              text: {
+                type: 'plain_text',
+                text: payload.subject,
+              },
+            },
+            {
+              type: 'section',
+              text: {
+                type: 'mrkdwn',
+                text:
+                  `*Customer:* ${payload.customer.name}\n` +
+                  `*Email:* ${payload.customer.email || 'N/A'}\n` +
+                  `*Phone:* ${payload.customer.phone}\n` +
+                  `*Order:* ${payload.orderId}\n` +
+                  `*Event:* ${payload.event}\n` +
+                  `*Channels:* ${payload.channels.join(', ')}\n` +
+                  `*Tracking:* ${payload.trackingUrl}`,
+              },
+            },
+          ],
+        }
+      : payload;
+
     const response = await fetch(NOTIFICATION_WEBHOOK_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(body),
     });
 
     if (!response.ok) {
+      const errorBody = await response.text();
       return {
         status: 'failed' as NotificationStatus,
-        detail: `Webhook returned HTTP ${response.status}.`,
+        detail: `Webhook returned HTTP ${response.status}${errorBody ? `: ${errorBody}` : '.'}`,
       };
+    }
+
+    const responseBody = await response.text();
+    if (isSlackWebhook) {
+      return {
+        status: 'sent' as NotificationStatus,
+        detail: 'Notification posted to Slack webhook.',
+      };
+    }
+
+    if (responseBody) {
+      try {
+        const parsed = JSON.parse(responseBody) as {
+          status?: unknown;
+          detail?: unknown;
+        };
+
+        if (isNotificationStatus(parsed.status)) {
+          return {
+            status: parsed.status,
+            detail:
+              typeof parsed.detail === 'string' && parsed.detail
+                ? parsed.detail
+                : 'Notification processed by webhook.',
+          };
+        }
+      } catch {
+        // Non-JSON response body is acceptable for generic webhooks.
+      }
     }
 
     return {

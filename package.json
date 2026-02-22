@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "gateway": "node scripts/notification-gateway.mjs",
     "lint": "eslint .",
     "build": "vite build",
     "postbuild": "node scripts/copy404.mjs",

@@ -31,14 +31,42 @@ Delivery channels are prepared as:
 - SMS
 - WhatsApp
 
-By default notifications are logged locally.  
-To actually deliver through your provider, set:
+By default notifications are logged locally.
+
+For real delivery you now have two options:
+
+- Use a Slack webhook directly in `VITE_NOTIFICATION_WEBHOOK_URL`
+- Use the included real provider gateway (`scripts/notification-gateway.mjs`) with Resend + Twilio
+
+### Real provider gateway setup (recommended)
+
+1. Copy `.env.example` to `.env`
+2. Fill provider credentials:
+   - `RESEND_API_KEY`
+   - `RESEND_FROM_EMAIL`
+   - `TWILIO_ACCOUNT_SID`
+   - `TWILIO_AUTH_TOKEN`
+   - `TWILIO_SMS_FROM`
+   - `TWILIO_WHATSAPP_FROM`
+3. Keep frontend webhook target as:
 
 ```bash
-VITE_NOTIFICATION_WEBHOOK_URL=https://your-notification-gateway.example.com/webhook
+VITE_NOTIFICATION_WEBHOOK_URL=http://localhost:8787/notify
 ```
 
-The app posts event payloads to this webhook (order/customer/event/tracking URL/channels).
+4. Start gateway:
+
+```bash
+npm run gateway
+```
+
+5. In another terminal, start app:
+
+```bash
+npm run dev
+```
+
+The frontend posts event payloads to `/notify`; gateway forwards to real providers and returns per-channel status.
 
 ## Default demo accounts
 
@@ -56,6 +84,8 @@ Driver accounts:
 npm install
 npm run dev
 ```
+
+If testing real notifications locally, run `npm run gateway` in parallel.
 
 ## Build and deploy (GitHub Pages)
 
