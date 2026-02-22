@@ -1,7 +1,8 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Truck, Settings, Menu, X } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { LayoutDashboard, Truck, LogOut, Menu, X, MessageSquare, PieChart } from 'lucide-react';
 import { useState } from 'react';
+import { useStore } from '../context/StoreContext';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -11,121 +12,126 @@ function cn(...inputs: ClassValue[]) {
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { currentUser, logout } = useStore();
   const location = useLocation();
+  const navigate = useNavigate();
 
-  const navigation = [
-    { name: 'Dispatcher', href: '/', icon: LayoutDashboard },
-    { name: 'Driver App', href: '/driver', icon: Truck },
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
+  const navigation = currentUser?.role === 'dispatcher' ? [
+    { name: 'Dashboard', href: '/', icon: LayoutDashboard },
+    { name: 'Reports', href: '/reports', icon: PieChart },
+  ] : currentUser?.role === 'driver' ? [
+    { name: 'My Tasks', href: '/', icon: Truck },
+    { name: 'Chat', href: '/chat', icon: MessageSquare },
+  ] : [
+    { name: 'Login', href: '/login', icon: Truck },
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row">
       {/* Sidebar for desktop */}
-      <aside className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 bg-white border-r border-gray-200">
-        <div className="flex flex-col flex-grow pt-5 pb-4 overflow-y-auto">
-          <div className="flex items-center flex-shrink-0 px-4">
-            <h1 className="text-2xl font-bold text-primary-600">ShipFlow</h1>
-          </div>
-          <nav className="mt-8 flex-1 px-2 space-y-1">
-            {navigation.map((item) => {
-              const isActive = location.pathname === item.href;
-              return (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={cn(
-                    isActive
-                      ? 'bg-primary-50 text-primary-600'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
-                    'group flex items-center px-2 py-2 text-sm font-medium rounded-md'
-                  )}
-                >
-                  <item.icon
+      {currentUser && (
+        <aside className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 bg-gray-900 text-white">
+          <div className="flex flex-col flex-grow pt-5 pb-4 overflow-y-auto">
+            <div className="flex items-center flex-shrink-0 px-4 mb-8">
+              <h1 className="text-xl font-black tracking-tighter text-white">
+                PABITRA GANESH <span className="text-primary-400">SUPPLIERS</span>
+              </h1>
+            </div>
+            <nav className="flex-1 px-2 space-y-1">
+              {navigation.map((item) => {
+                const isActive = location.pathname === item.href;
+                return (
+                  <Link
+                    key={item.name}
+                    to={item.href}
                     className={cn(
-                      isActive ? 'text-primary-600' : 'text-gray-400 group-hover:text-gray-500',
-                      'mr-3 flex-shrink-0 h-6 w-6'
+                      isActive
+                        ? 'bg-gray-800 text-primary-400'
+                        : 'text-gray-300 hover:bg-gray-800 hover:text-white',
+                      'group flex items-center px-3 py-3 text-sm font-bold rounded-xl transition-all'
                     )}
-                  />
-                  {item.name}
-                </Link>
-              );
-            })}
-          </nav>
-        </div>
-      </aside>
-
-      {/* Mobile menu */}
-      <div className="md:hidden">
-        <div className="fixed inset-0 z-40 flex">
-          {isMobileMenuOpen && (
-            <div className="fixed inset-0 bg-gray-600 bg-opacity-75" onClick={() => setIsMobileMenuOpen(false)} />
-          )}
-          <div
-            className={cn(
-              'relative flex-1 flex flex-col max-w-xs w-full bg-white transition ease-in-out duration-300 transform',
-              isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
-            )}
-          >
-            <div className="absolute top-0 right-0 -mr-12 pt-2">
+                  >
+                    <item.icon
+                      className={cn(
+                        isActive ? 'text-primary-400' : 'text-gray-400 group-hover:text-gray-300',
+                        'mr-3 flex-shrink-0 h-5 w-5'
+                      )}
+                    />
+                    {item.name}
+                  </Link>
+                );
+              })}
+            </nav>
+            <div className="p-4 border-t border-gray-800">
+              <div className="flex items-center space-x-3 mb-4 px-2">
+                <div className="h-8 w-8 rounded-full bg-primary-500 flex items-center justify-center font-bold">
+                  {currentUser.name.charAt(0)}
+                </div>
+                <div className="flex-1 overflow-hidden">
+                  <p className="text-sm font-bold truncate">{currentUser.name}</p>
+                  <p className="text-xs text-gray-500 uppercase">{currentUser.role}</p>
+                </div>
+              </div>
               <button
-                type="button"
-                className="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
-                onClick={() => setIsMobileMenuOpen(false)}
+                onClick={handleLogout}
+                className="w-full flex items-center px-3 py-2 text-sm font-bold text-red-400 hover:bg-red-950/30 rounded-xl transition-all"
               >
-                <X className="h-6 w-6 text-white" />
+                <LogOut className="mr-3 h-5 w-5" />
+                Sign Out
               </button>
             </div>
-            <div className="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
-              <div className="flex-shrink-0 flex items-center px-4">
-                <h1 className="text-2xl font-bold text-primary-600">ShipFlow</h1>
-              </div>
-              <nav className="mt-5 px-2 space-y-1">
-                {navigation.map((item) => {
-                  const isActive = location.pathname === item.href;
-                  return (
-                    <Link
-                      key={item.name}
-                      to={item.href}
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className={cn(
-                        isActive
-                          ? 'bg-primary-50 text-primary-600'
-                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
-                        'group flex items-center px-2 py-2 text-base font-medium rounded-md'
-                      )}
-                    >
-                      <item.icon
-                        className={cn(
-                          isActive ? 'text-primary-600' : 'text-gray-400 group-hover:text-gray-500',
-                          'mr-4 flex-shrink-0 h-6 w-6'
-                        )}
-                      />
-                      {item.name}
-                    </Link>
-                  );
-                })}
-              </nav>
-            </div>
           </div>
-        </div>
+        </aside>
+      )}
+
+      {/* Mobile Header */}
+      <div className="md:hidden bg-gray-900 text-white p-4 flex justify-between items-center sticky top-0 z-20">
+        <h1 className="text-lg font-black tracking-tighter">
+          PG <span className="text-primary-400">SUPPLIERS</span>
+        </h1>
+        {currentUser && (
+          <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+            {isMobileMenuOpen ? <X /> : <Menu />}
+          </button>
+        )}
       </div>
 
-      <div className="flex flex-col flex-1 md:pl-64">
-        <div className="sticky top-0 z-10 md:hidden pl-1 pt-1 sm:pl-3 sm:pt-3 bg-white border-b border-gray-200">
-          <button
-            type="button"
-            className="-ml-0.5 -mt-0.5 h-12 w-12 inline-flex items-center justify-center rounded-md text-gray-500 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500"
-            onClick={() => setIsMobileMenuOpen(true)}
-          >
-            <Menu className="h-6 w-6" />
-          </button>
+      {/* Mobile Menu */}
+      {isMobileMenuOpen && currentUser && (
+        <div className="md:hidden fixed inset-0 z-30 bg-gray-900 pt-20 px-4">
+          <nav className="space-y-4">
+            {navigation.map((item) => (
+              <Link
+                key={item.name}
+                to={item.href}
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center p-4 text-xl font-bold text-white border-b border-gray-800"
+              >
+                <item.icon className="mr-4 h-6 w-6 text-primary-400" />
+                {item.name}
+              </Link>
+            ))}
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center p-4 text-xl font-bold text-red-400"
+            >
+              <LogOut className="mr-4 h-6 w-6" />
+              Sign Out
+            </button>
+          </nav>
         </div>
-        <main className="flex-1">
-          <div className="py-6">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">{children}</div>
-          </div>
-        </main>
-      </div>
+      )}
+
+      <main className={cn("flex-1", currentUser && "md:ml-64")}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {children}
+        </div>
+      </main>
     </div>
   );
 };

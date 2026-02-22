@@ -19,14 +19,34 @@ export interface Order {
   pod?: ProofOfDelivery;
 }
 
-export interface Driver {
+export type UserRole = 'dispatcher' | 'driver';
+
+export interface User {
   id: string;
   name: string;
-  status: 'active' | 'inactive';
-  currentOrderId?: string;
+  role: UserRole;
+  password?: string; // For simulation
+}
+
+export interface ChatMessage {
+  id: string;
+  senderId: string;
+  receiverId: string;
+  text: string;
+  timestamp: string;
+}
+
+export interface DriverLocation {
+  lat: number;
+  lng: number;
+  bearing: number;
 }
 
 export interface StoreState {
   orders: Order[];
-  drivers: Driver[];
+  drivers: User[];
+  dispatchers: User[];
+  currentUser: User | null;
+  messages: ChatMessage[];
+  driverLocations: Record<string, DriverLocation>;
 }

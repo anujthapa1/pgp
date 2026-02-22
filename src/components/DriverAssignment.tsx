@@ -26,7 +26,7 @@ const DriverAssignment: React.FC<DriverAssignmentProps> = ({ orderId, onClose })
               className="w-full flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition"
             >
               <span className="font-medium text-gray-900">{driver.name}</span>
-              <span className="text-xs text-gray-500 uppercase">{driver.status}</span>
+              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{driver.id}</span>
             </button>
           ))}
         </div>
