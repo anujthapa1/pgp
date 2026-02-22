@@ -1,10 +1,11 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Truck, LogOut, Menu, X, MessageSquare, PieChart } from 'lucide-react';
+import { LayoutDashboard, Truck, LogOut, Menu, X, MessageSquare, PieChart, Mail, Phone } from 'lucide-react';
 import { useState } from 'react';
 import { useStore } from '../context/StoreContext';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { COMPANY_NAME, COMPANY_SHORT_NAME, SUPPORT_EMAIL, SUPPORT_PHONE } from '../constants/company';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -39,7 +40,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           <div className="flex flex-col flex-grow pt-5 pb-4 overflow-y-auto">
             <div className="flex items-center flex-shrink-0 px-4 mb-8">
               <h1 className="text-xl font-black tracking-tighter text-white">
-                PABITRA GANESH <span className="text-primary-400">SUPPLIERS</span>
+                {COMPANY_NAME}
               </h1>
             </div>
             <nav className="flex-1 px-2 space-y-1">
@@ -84,6 +85,17 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 <LogOut className="mr-3 h-5 w-5" />
                 Sign Out
               </button>
+              <div className="mt-4 pt-4 border-t border-gray-800 text-[10px] text-gray-500 space-y-2">
+                <p className="font-black uppercase tracking-widest">Support</p>
+                <a href={`mailto:${SUPPORT_EMAIL}`} className="flex items-center hover:text-gray-300">
+                  <Mail className="h-3 w-3 mr-2" />
+                  {SUPPORT_EMAIL}
+                </a>
+                <a href={`tel:${SUPPORT_PHONE}`} className="flex items-center hover:text-gray-300">
+                  <Phone className="h-3 w-3 mr-2" />
+                  {SUPPORT_PHONE}
+                </a>
+              </div>
             </div>
           </div>
         </aside>
@@ -92,7 +104,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       {/* Mobile Header */}
       <div className="md:hidden bg-gray-900 text-white p-4 flex justify-between items-center sticky top-0 z-20">
         <h1 className="text-lg font-black tracking-tighter">
-          PG <span className="text-primary-400">SUPPLIERS</span>
+          {COMPANY_SHORT_NAME}
         </h1>
         {currentUser && (
           <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>

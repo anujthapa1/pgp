@@ -1,11 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import { useStore } from '../context/StoreContext';
-import { Truck, MapPin, Phone, Package, ChevronRight, CheckCircle2, LogOut, MessageSquare, Zap, Bell } from 'lucide-react';
+import { Truck, MapPin, Phone, Package, ChevronRight, CheckCircle2, LogOut, MessageSquare, Zap, Bell, Mail } from 'lucide-react';
 import ProofOfDelivery from '../components/ProofOfDelivery';
 import ChatSystem from '../components/ChatSystem';
-import { Order, OrderStatus, ProofOfDelivery as PODType } from '../types';
+import { OrderStatus, ProofOfDelivery as PODType } from '../types';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getTrackingUrl } from '../lib/tracking';
 
 const DriverApp: React.FC = () => {
   const { orders, currentUser, logout, updateOrderStatus } = useStore();
@@ -40,7 +41,7 @@ const DriverApp: React.FC = () => {
         break;
       case 'picked_up':
         nextStatus = 'out_for_delivery';
-        triggerNotification("Live Track Shared", "Customer emailed tracking link: http://localhost:5173/track/" + orderId);
+        triggerNotification('Live Track Shared', `Customer notified via Email/SMS/WhatsApp: ${getTrackingUrl(orderId)}`);
         break;
       case 'out_for_delivery':
         setActiveOrderId(orderId);
@@ -153,7 +154,7 @@ const DriverApp: React.FC = () => {
                       <h4 className="text-2xl font-black text-gray-900 tracking-tighter leading-none">{order.customerName}</h4>
                     </div>
                     <span className="px-3 py-1.5 bg-gray-900 text-white text-[10px] font-black rounded-full uppercase tracking-tighter">
-                      {order.status.replace('_', ' ')}
+                      {order.status.replace(/_/g, ' ')}
                     </span>
                   </div>
 
@@ -169,6 +170,12 @@ const DriverApp: React.FC = () => {
                         <Phone className="h-5 w-5 text-gray-400" />
                       </div>
                       <span className="text-gray-600 font-bold">{order.phone}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <div className="bg-gray-50 p-2 rounded-lg mr-4">
+                        <Mail className="h-5 w-5 text-gray-400" />
+                      </div>
+                      <span className="text-gray-600 font-bold text-sm">{order.customerEmail || 'No email on file'}</span>
                     </div>
                     <div className="flex items-start">
                       <div className="bg-gray-50 p-2 rounded-lg mr-4">

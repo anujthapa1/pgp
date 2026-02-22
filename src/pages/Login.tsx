@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../context/StoreContext';
-import { Truck, Shield, Lock, User as UserIcon } from 'lucide-react';
+import { Truck, Shield, Lock, User as UserIcon, Mail, Phone } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { COMPANY_NAME, SUPPORT_EMAIL, SUPPORT_PHONE } from '../constants/company';
 
 const Login: React.FC = () => {
   const [role, setRole] = useState<'dispatcher' | 'driver'>('dispatcher');
@@ -33,23 +34,24 @@ const Login: React.FC = () => {
           <div className="bg-primary-500 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-primary-500/50">
             {role === 'dispatcher' ? <Shield size={32} /> : <Truck size={32} />}
           </div>
-          <h2 className="text-2xl font-black tracking-tight">PABITRA GANESH</h2>
-          <p className="text-primary-400 font-bold text-sm tracking-widest uppercase mt-1">Suppliers Portal</p>
+          <h2 className="text-2xl font-black tracking-tight">{COMPANY_NAME}</h2>
+          <p className="text-primary-400 font-bold text-sm tracking-widest uppercase mt-1">Dispatcher & Driver Portals</p>
         </div>
 
         <div className="p-8">
+          <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Choose Login Portal</p>
           <div className="flex bg-gray-100 p-1 rounded-xl mb-8">
             <button
-              onClick={() => setRole('dispatcher')}
+              onClick={() => { setRole('dispatcher'); setUserId(''); setError(''); }}
               className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${role === 'dispatcher' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
             >
-              Dispatcher
+              Dispatcher Portal
             </button>
             <button
-              onClick={() => setRole('driver')}
+              onClick={() => { setRole('driver'); setUserId(''); setError(''); }}
               className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${role === 'driver' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
             >
-              Driver
+              Driver Portal
             </button>
           </div>
 
@@ -107,6 +109,16 @@ const Login: React.FC = () => {
               Sign In to {role.toUpperCase()}
             </button>
           </form>
+
+          <div className="mt-6 pt-4 border-t border-gray-100 space-y-2">
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Email & Phone Support</p>
+            <a href={`mailto:${SUPPORT_EMAIL}`} className="text-xs text-gray-500 flex items-center font-semibold hover:text-primary-600">
+              <Mail size={12} className="mr-2" /> {SUPPORT_EMAIL}
+            </a>
+            <a href={`tel:${SUPPORT_PHONE}`} className="text-xs text-gray-500 flex items-center font-semibold hover:text-primary-600">
+              <Phone size={12} className="mr-2" /> {SUPPORT_PHONE}
+            </a>
+          </div>
         </div>
       </motion.div>
     </div>

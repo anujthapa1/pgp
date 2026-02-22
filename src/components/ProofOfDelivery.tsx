@@ -13,8 +13,12 @@ const ProofOfDelivery: React.FC<ProofOfDeliveryProps> = ({ onSave, onCancel }) =
   const sigCanvas = useRef<SignatureCanvas>(null);
   const [photo, setPhoto] = useState<string | null>(null);
   const [notes, setNotes] = useState('');
+  const [error, setError] = useState('');
 
-  const clear = () => sigCanvas.current?.clear();
+  const clear = () => {
+    sigCanvas.current?.clear();
+    setError('');
+  };
 
   const handleSave = () => {
     let signature = undefined;
@@ -26,9 +30,16 @@ const ProofOfDelivery: React.FC<ProofOfDeliveryProps> = ({ onSave, onCancel }) =
       console.error('Failed to capture signature', e);
     }
 
+    if (!photo || !signature) {
+      setError('POD requires exactly one photo and one signature before completion.');
+      return;
+    }
+
+    setError('');
+
     onSave({
       signature,
-      photo: photo || undefined,
+      photo,
       timestamp: new Date().toISOString(),
       notes: notes || undefined,
     });
@@ -36,6 +47,7 @@ const ProofOfDelivery: React.FC<ProofOfDeliveryProps> = ({ onSave, onCancel }) =
 
   const simulatePhoto = () => {
     setPhoto('https://images.unsplash.com/photo-1586769852836-bc069f19e1b6?auto=format&fit=crop&q=80&w=200&h=200');
+    setError('');
   };
 
   return (
@@ -69,7 +81,10 @@ const ProofOfDelivery: React.FC<ProofOfDeliveryProps> = ({ onSave, onCancel }) =
               >
                 <img src={photo} alt="POD" className="w-full h-56 object-cover rounded-xl shadow-md" />
                 <button
-                  onClick={() => setPhoto(null)}
+                  onClick={() => {
+                    setPhoto(null);
+                    setError('');
+                  }}
                   className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full shadow-lg"
                 >
                   <X className="h-4 w-4" />
@@ -119,6 +134,10 @@ const ProofOfDelivery: React.FC<ProofOfDeliveryProps> = ({ onSave, onCancel }) =
               rows={2}
             />
           </div>
+
+          {error && (
+            <p className="text-sm font-bold text-red-500">{error}</p>
+          )}
         </div>
 
         <div className="p-5 border-t bg-gray-50/80 sm:rounded-b-2xl sticky bottom-0">

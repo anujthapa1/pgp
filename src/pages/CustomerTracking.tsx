@@ -1,13 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useStore } from '../context/StoreContext';
-import { MapPin, Package, Truck, CheckCircle, ChevronLeft, Phone, User } from 'lucide-react';
+import { MapPin, Package, Truck, CheckCircle, ChevronLeft, Phone, User, Star, Mail } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { COMPANY_NAME, SUPPORT_EMAIL, SUPPORT_PHONE } from '../constants/company';
 
 const CustomerTracking: React.FC = () => {
   const { orderId } = useParams<{ orderId: string }>();
-  const { orders, drivers, driverLocations } = useStore();
+  const { orders, drivers, driverLocations, submitFeedback } = useStore();
   const [loading, setLoading] = useState(true);
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState('');
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
 
   const order = orders.find(o => o.id === orderId);
   const driver = drivers.find(d => d.id === order?.driverId);
@@ -17,6 +21,13 @@ const CustomerTracking: React.FC = () => {
     const timer = setTimeout(() => setLoading(false), 1000);
     return () => clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    if (!order?.feedback) return;
+    setRating(order.feedback.rating);
+    setComment(order.feedback.comment || '');
+    setFeedbackSubmitted(true);
+  }, [order?.feedback]);
 
   if (loading) {
     return (
@@ -57,7 +68,7 @@ const CustomerTracking: React.FC = () => {
         <div className="flex justify-between items-start mb-6">
           <div>
             <p className="text-primary-400 text-[10px] font-black tracking-widest uppercase">Live Tracking</p>
-            <h1 className="text-2xl font-black tracking-tighter">PABITRA GANESH</h1>
+            <h1 className="text-2xl font-black tracking-tighter">{COMPANY_NAME}</h1>
           </div>
           <div className="bg-gray-800 px-3 py-1 rounded-full text-[10px] font-mono font-bold">
             {order.id}
@@ -201,10 +212,70 @@ const CustomerTracking: React.FC = () => {
               <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Items</p>
               <p className="text-sm text-gray-900 italic">{order.items}</p>
             </div>
-            <p className="text-[10px] font-mono text-gray-300">EST 1998 - Pabitra Ganesh Suppliers</p>
+            <p className="text-[10px] font-mono text-gray-300">EST 1998 - {COMPANY_NAME}</p>
+          </div>
+          <div className="pt-2 border-t border-gray-100">
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Support</p>
+            <div className="space-y-1">
+              <a href={`mailto:${SUPPORT_EMAIL}`} className="text-xs text-gray-500 flex items-center font-semibold hover:text-primary-600">
+                <Mail size={12} className="mr-2" /> {SUPPORT_EMAIL}
+              </a>
+              <a href={`tel:${SUPPORT_PHONE}`} className="text-xs text-gray-500 flex items-center font-semibold hover:text-primary-600">
+                <Phone size={12} className="mr-2" /> {SUPPORT_PHONE}
+              </a>
+            </div>
           </div>
         </div>
       </div>
+
+      {order.status === 'delivered' && (
+        <div className="bg-white p-6 border-t border-gray-100">
+          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Instant Feedback</p>
+          {feedbackSubmitted ? (
+            <div className="bg-green-50 border border-green-100 rounded-2xl p-4">
+              <p className="font-black text-green-700">Thanks for your feedback!</p>
+              <div className="flex items-center mt-2">
+                {Array.from({ length: 5 }, (_, idx) => (
+                  <Star key={idx} size={16} className={idx < rating ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'} />
+                ))}
+              </div>
+              {comment && <p className="text-sm text-green-700/80 mt-2">{comment}</p>}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                {Array.from({ length: 5 }, (_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setRating(idx + 1)}
+                    className="p-1"
+                  >
+                    <Star size={20} className={idx < rating ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'} />
+                  </button>
+                ))}
+              </div>
+              <textarea
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                placeholder="Tell us how your delivery experience was."
+                className="w-full border border-gray-200 rounded-xl p-3 text-sm outline-none focus:border-primary-500"
+                rows={2}
+              />
+              <button
+                onClick={() => {
+                  if (!rating) return;
+                  submitFeedback(order.id, rating, comment);
+                  setFeedbackSubmitted(true);
+                }}
+                className="w-full bg-gray-900 text-white py-3 rounded-xl font-bold disabled:bg-gray-300"
+                disabled={!rating}
+              >
+                Submit Feedback
+              </button>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

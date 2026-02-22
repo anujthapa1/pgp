@@ -5,6 +5,7 @@ import { X } from 'lucide-react';
 
 interface OrderFormData {
   customerName: string;
+  customerEmail: string;
   address: string;
   phone: string;
   items: string;
@@ -46,6 +47,21 @@ const OrderForm: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address.message}</p>}
           </div>
           <div>
+            <label className="block text-sm font-medium text-gray-700">Customer Email</label>
+            <input
+              type="email"
+              {...register('customerEmail', {
+                required: 'Email is required to send delivery tracking',
+                pattern: {
+                  value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                  message: 'Enter a valid email address',
+                },
+              })}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm border p-2"
+            />
+            {errors.customerEmail && <p className="text-red-500 text-xs mt-1">{errors.customerEmail.message}</p>}
+          </div>
+          <div>
             <label className="block text-sm font-medium text-gray-700">Phone</label>
             <input
               {...register('phone', { required: 'Phone is required' })}
@@ -62,6 +78,9 @@ const OrderForm: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             />
             {errors.items && <p className="text-red-500 text-xs mt-1">{errors.items.message}</p>}
           </div>
+          <p className="text-xs text-gray-400">
+            Tracking and delivery confirmation notifications are prepared for Email, SMS, and WhatsApp.
+          </p>
           <div className="pt-4">
             <button
               type="submit"

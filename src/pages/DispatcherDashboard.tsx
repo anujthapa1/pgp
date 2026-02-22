@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useStore } from '../context/StoreContext';
 import { Link } from 'react-router-dom';
-import { Plus, User, Clock, MapPin, CheckCircle, Package, MessageSquare, DollarSign, History, ChevronRight } from 'lucide-react';
+import { Plus, User, Clock, MapPin, CheckCircle, Package, MessageSquare, DollarSign, History, ChevronRight, Mail, Phone, Bell } from 'lucide-react';
 import OrderForm from '../components/OrderForm';
 import DriverAssignment from '../components/DriverAssignment';
 import ChatSystem from '../components/ChatSystem';
@@ -10,10 +10,11 @@ import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const DispatcherDashboard: React.FC = () => {
-  const { orders, drivers } = useStore();
+  const { orders, drivers, notifications } = useStore();
   const [activeTab, setActiveTab] = useState<'orders' | 'payments' | 'chat' | 'history'>('orders');
   const [isOrderFormOpen, setIsOrderFormOpen] = useState(false);
   const [assigningOrderId, setAssigningOrderId] = useState<string | null>(null);
+  const webhookConfigured = Boolean(import.meta.env.VITE_NOTIFICATION_WEBHOOK_URL);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -85,7 +86,10 @@ const DispatcherDashboard: React.FC = () => {
 
             <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
               <div className="px-8 py-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/30">
-                <h3 className="text-xl font-black text-gray-900">Active Queue</h3>
+                <div>
+                  <h3 className="text-xl font-black text-gray-900">Active Queue</h3>
+                  <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-1">Standard auto-dispatch is enabled</p>
+                </div>
                 <button
                   onClick={() => setIsOrderFormOpen(true)}
                   className="bg-primary-500 text-white flex items-center px-5 py-2.5 rounded-xl hover:bg-primary-600 transition shadow-lg shadow-primary-200 font-black text-sm"
@@ -121,10 +125,16 @@ const DispatcherDashboard: React.FC = () => {
                               <div className="text-xs text-gray-400 flex items-center mt-1">
                                 <MapPin size={12} className="mr-1" /> {order.address}
                               </div>
+                              <div className="text-xs text-gray-400 flex items-center mt-1">
+                                <Mail size={12} className="mr-1" /> {order.customerEmail || 'No email on file'}
+                              </div>
+                              <div className="text-xs text-gray-400 flex items-center mt-1">
+                                <Phone size={12} className="mr-1" /> {order.phone}
+                              </div>
                             </td>
                             <td className="px-8 py-6">
                               <span className={`px-3 py-1 text-[10px] font-black rounded-full uppercase tracking-tighter ${getStatusColor(order.status)}`}>
-                                {order.status.replace('_', ' ')}
+                                {order.status.replace(/_/g, ' ')}
                               </span>
                             </td>
                             <td className="px-8 py-6">
@@ -143,7 +153,7 @@ const DispatcherDashboard: React.FC = () => {
                                   onClick={() => setAssigningOrderId(order.id)}
                                   className="text-primary-600 bg-primary-50 px-4 py-2 rounded-xl text-xs font-black hover:bg-primary-500 hover:text-white transition-all shadow-sm"
                                 >
-                                  Assign Agent
+                                  Manual Assign
                                 </button>
                               ) : (
                                 <Link to={`/track/${order.id}`} target="_blank" className="text-gray-400 hover:text-primary-500 flex items-center justify-end text-xs font-bold">
@@ -223,6 +233,65 @@ const DispatcherDashboard: React.FC = () => {
                     )}
                   </tbody>
                </table>
+            </div>
+
+            <div className="border-t border-gray-100">
+              <div className="px-8 py-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/30">
+                <div className="flex items-center">
+                  <Bell className="mr-2 text-primary-500" />
+                  <h3 className="text-xl font-black text-gray-900">Notification History (Email/SMS/WhatsApp)</h3>
+                </div>
+                <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                  webhookConfigured ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                }`}>
+                  {webhookConfigured ? 'Integration ready' : 'Webhook not set'}
+                </span>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead className="bg-gray-50 text-[10px] font-black uppercase text-gray-400 tracking-widest border-b border-gray-100">
+                    <tr>
+                      <th className="px-8 py-4">Time</th>
+                      <th className="px-8 py-4">Order</th>
+                      <th className="px-8 py-4">Channels</th>
+                      <th className="px-8 py-4">Status</th>
+                      <th className="px-8 py-4">Details</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {notifications.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="px-8 py-12 text-center text-gray-400 font-bold">No notification history yet...</td>
+                      </tr>
+                    ) : (
+                      notifications.map((entry) => (
+                        <tr key={entry.id} className="hover:bg-gray-50 transition-colors">
+                          <td className="px-8 py-5 text-xs font-semibold text-gray-500">
+                            {format(new Date(entry.createdAt), 'MMM dd, HH:mm')}
+                          </td>
+                          <td className="px-8 py-5">
+                            <p className="font-mono text-xs font-black text-gray-700">{entry.orderId}</p>
+                            <p className="text-xs text-gray-400">{entry.customerName}</p>
+                          </td>
+                          <td className="px-8 py-5 text-xs font-bold text-gray-600 uppercase">
+                            {entry.channels.join(', ')}
+                          </td>
+                          <td className="px-8 py-5">
+                            <span className={`px-3 py-1 text-[10px] font-black rounded-full uppercase tracking-widest ${
+                              entry.status === 'sent' ? 'bg-green-100 text-green-700' :
+                              entry.status === 'queued' ? 'bg-yellow-100 text-yellow-700' :
+                              entry.status === 'skipped' ? 'bg-gray-100 text-gray-600' : 'bg-red-100 text-red-700'
+                            }`}>
+                              {entry.status}
+                            </span>
+                          </td>
+                          <td className="px-8 py-5 text-xs text-gray-500">{entry.detail}</td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </motion.div>
         )}

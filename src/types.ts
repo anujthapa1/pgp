@@ -10,6 +10,7 @@ export interface ProofOfDelivery {
 export interface Order {
   id: string;
   customerName: string;
+  customerEmail: string;
   address: string;
   phone: string;
   items: string;
@@ -17,6 +18,13 @@ export interface Order {
   createdAt: string;
   driverId?: string;
   pod?: ProofOfDelivery;
+  feedback?: CustomerFeedback;
+}
+
+export interface CustomerFeedback {
+  rating: number;
+  comment?: string;
+  submittedAt: string;
 }
 
 export type UserRole = 'dispatcher' | 'driver';
@@ -42,6 +50,23 @@ export interface DriverLocation {
   bearing: number;
 }
 
+export type NotificationEvent = 'tracking_started' | 'delivery_confirmed';
+export type NotificationChannel = 'email' | 'sms' | 'whatsapp';
+export type NotificationStatus = 'sent' | 'queued' | 'failed' | 'skipped';
+
+export interface NotificationLog {
+  id: string;
+  orderId: string;
+  event: NotificationEvent;
+  channels: NotificationChannel[];
+  status: NotificationStatus;
+  detail: string;
+  createdAt: string;
+  customerName: string;
+  customerEmail?: string;
+  customerPhone: string;
+}
+
 export interface StoreState {
   orders: Order[];
   drivers: User[];
@@ -49,4 +74,5 @@ export interface StoreState {
   currentUser: User | null;
   messages: ChatMessage[];
   driverLocations: Record<string, DriverLocation>;
+  notifications: NotificationLog[];
 }
